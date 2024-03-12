@@ -55,12 +55,12 @@ public:
     // Function to draw the snake on the screen
     void Draw()
     {
-        for (int i = 0; i < body.size(); i++)
+        for (const auto& segment : body)
         {
-            float x = body[i].x;
-            float y = body[i].y;
-            Rectangle segment = Rectangle{ offset + x * cellSize, offset + y * cellSize, (float)cellSize, (float)cellSize };
-            DrawRectangleRounded(segment, 0.5, 6, darkGreen);
+            float x = segment.x;
+            float y = segment.y;
+            Rectangle segmentRect = Rectangle{ offset + x * cellSize, offset + y * cellSize, (float)cellSize, (float)cellSize };
+            DrawRectangleRounded(segmentRect, 0.25, 6, darkGreen);
         }
     }
 
@@ -69,13 +69,13 @@ public:
     {
         body.push_front(Vector2Add(body[0], direction));
 
-        if (addSegment == true)
+        if (!addSegment)
         {
-            addSegment = false;
+            body.pop_back();
         }
         else
         {
-            body.pop_back();
+            addSegment = false;
         }
     }
 
@@ -95,9 +95,9 @@ public:
     // Constructor to initialize the food's position and texture
     Food(deque<Vector2> snakeBody)
     {
-        Image food = LoadImage("Graphics/food.png");
-        texture = LoadTextureFromImage(food);
-        UnloadImage(food);
+        Image foodImage = LoadImage("Graphics/food.png");
+        texture = LoadTextureFromImage(foodImage);
+        UnloadImage(foodImage);
         position = GenerateRandomPosition(snakeBody);
     }
 
@@ -144,6 +144,7 @@ public:
     Food food = Food(snake.body);
     bool running = true;
     int score = 0;
+    float gameDificult = 0.15;
     Sound eatSound;
     Sound collidingSound;
 
@@ -188,9 +189,14 @@ public:
         if (Vector2Equals(snake.body[0], food.position))
         {
             cout << "EATING FOOD" << endl;
+            cout << gameDificult << endl;
             food.position = food.GenerateRandomPosition(snake.body);
             snake.addSegment = true;
             score++;
+            if (score % 5 == 0)
+            {
+                gameDificult = gameDificult - 0.01;
+            }
             PlaySound(eatSound);
         }
     }
@@ -219,13 +225,14 @@ public:
     // Function to handle game over state
     void GameOver()
     {
-        cout << "COLIDED" << endl;
-
+        cout << "COLLIDED" << endl;
         snake.Reset();
         food.position = food.GenerateRandomPosition(snake.body);
         running = false;
         score = 0;
+        gameDificult = 0.15;
         PlaySound(collidingSound);
+        DrawRectangleLinesEx(Rectangle{ (float)offset - 5, (float)offset - 5, (float)screenSize + 10, (float)screenSize + 10 }, 5, darkGreen);
     }
 };
 
@@ -241,7 +248,7 @@ int main()
     {
         BeginDrawing();
 
-        if (EventTriggered(0.2))
+        if (EventTriggered(game.gameDificult))
         {
             game.Update();
         }
@@ -269,6 +276,12 @@ int main()
             cout << "RIGHT" << endl;
             game.snake.direction = { 1, 0 };
             game.running = true;
+        }
+
+        if (!game.running)
+        {
+            DrawText("Game Over", offset + (screenSize - MeasureText("Game Over", 40)) / 2, offset + screenSize / 2, 40, darkGreen);
+            DrawText("Press Enter to Restart", offset + (screenSize - MeasureText("Press Enter to Restart", 20)) / 2, offset + screenSize / 2 + 50, 20, darkGreen);
         }
 
         //Drawing Background
