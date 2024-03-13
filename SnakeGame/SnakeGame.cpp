@@ -14,8 +14,8 @@ int offset = 70;
 int cellSize = 25;
 int cellCount = 25;
 int screenSize = cellSize * cellCount;
-
 double lastUpdateTime = 0;
+int bestScore = 0;
 
 #pragma endregion
 
@@ -229,8 +229,14 @@ public:
         snake.Reset();
         food.position = food.GenerateRandomPosition(snake.body);
         running = false;
-        score = 0;
         gameDificult = 0.15;
+
+        if (score >= bestScore)
+        {
+			bestScore = score;
+		}
+
+        score = 0;
         PlaySound(collidingSound);
         DrawRectangleLinesEx(Rectangle{ (float)offset - 5, (float)offset - 5, (float)screenSize + 10, (float)screenSize + 10 }, 5, darkGreen);
     }
@@ -257,38 +263,55 @@ int main()
         {
             cout << "UP" << endl;
             game.snake.direction = { 0, -1 };
-            game.running = true;
         }
         if (IsKeyPressed(KEY_DOWN) && game.snake.direction.y != -1)
         {
             cout << "DOWN" << endl;
             game.snake.direction = { 0, 1 };
-            game.running = true;
         }
         if (IsKeyPressed(KEY_LEFT) && game.snake.direction.x != 1)
         {
             cout << "LEFT" << endl;
             game.snake.direction = { -1, 0 };
-            game.running = true;
         }
         if (IsKeyPressed(KEY_RIGHT) && game.snake.direction.x != -1)
         {
             cout << "RIGHT" << endl;
             game.snake.direction = { 1, 0 };
+        }
+        if (IsKeyPressed(KEY_ENTER) && !game.running)
+        {
             game.running = true;
         }
 
         if (!game.running)
         {
-            DrawText("Game Over", offset + (screenSize - MeasureText("Game Over", 40)) / 2, offset + screenSize / 2, 40, darkGreen);
-            DrawText("Press Enter to Restart", offset + (screenSize - MeasureText("Press Enter to Restart", 20)) / 2, offset + screenSize / 2 + 50, 20, darkGreen);
+            int gameOverTextWidth = MeasureText("Game Over", 40);
+            int restartTextWidth = MeasureText("Press Enter to Restart", 20);
+
+            int gameOverTextX = offset + (screenSize - gameOverTextWidth) / 2;
+            int gameOverTextY = offset + screenSize / 2 -50;
+
+            int restartTextX = offset + (screenSize - restartTextWidth) / 2;
+            int restartTextY = offset + screenSize / 2 ;
+
+            DrawText("Game Over", gameOverTextX, gameOverTextY, 40, darkGreen);
+            DrawText("Press Enter to Restart", restartTextX, restartTextY, 20, darkGreen);          
         }
 
         //Drawing Background
         ClearBackground(lightGreen);
         DrawRectangleLinesEx(Rectangle{ (float)offset - 5, (float)offset - 5, (float)screenSize + 10, (float)screenSize + 10 }, 5, darkGreen);
         DrawText("Retro Snake Game", offset, 20, 40, darkGreen);
-        DrawText(TextFormat("%i", game.score), offset, offset + screenSize + 10, 40, darkGreen);
+
+        DrawText("Score: ", offset, offset + screenSize + 10, 40, darkGreen);
+        int scoreTextWidth = MeasureText("Score: ", 40);
+        DrawText(TextFormat("%i", game.score), offset + scoreTextWidth, offset + screenSize + 10, 40, darkGreen);
+
+        DrawText("Best Score: ", 2*(scoreTextWidth + offset - 5), offset + screenSize + 10, 40, darkGreen);
+        int bestScoreTextWidth = MeasureText("Best Score: ", 40);
+        DrawText(TextFormat("%i", bestScore), 2*(offset + bestScoreTextWidth + 10), offset + screenSize + 10, 40, darkGreen);
+
         game.Draw();
         EndDrawing();
     }
