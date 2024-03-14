@@ -16,6 +16,7 @@ int cellCount = 25;
 int screenSize = cellSize * cellCount;
 double lastUpdateTime = 0;
 int bestScore = 0;
+int deathCount = 0;
 
 #pragma endregion
 
@@ -142,7 +143,7 @@ class Game
 public:
     Snake snake = Snake();
     Food food = Food(snake.body);
-    bool running = true;
+    bool running = false;
     int score = 0;
     float gameDificult = 0.15;
     Sound eatSound;
@@ -233,10 +234,11 @@ public:
 
         if (score >= bestScore)
         {
-			bestScore = score;
-		}
+            bestScore = score;
+        }
 
         score = 0;
+        deathCount++;
         PlaySound(collidingSound);
         DrawRectangleLinesEx(Rectangle{ (float)offset - 5, (float)offset - 5, (float)screenSize + 10, (float)screenSize + 10 }, 5, darkGreen);
     }
@@ -286,17 +288,25 @@ int main()
 
         if (!game.running)
         {
-            int gameOverTextWidth = MeasureText("Game Over", 40);
-            int restartTextWidth = MeasureText("Press Enter to Restart", 20);
+            if (deathCount == 0)
+            {
+                int starGameWidth = MeasureText("Press Enter to Start", 40);
+                DrawText("Press Enter to Start", offset + (screenSize - starGameWidth) / 2, offset + screenSize / 2, 40, darkGreen);
+            }
+            else
+            {
+                int gameOverTextWidth = MeasureText("Game Over", 40);
+                int restartTextWidth = MeasureText("Press Enter to Restart", 20);
 
-            int gameOverTextX = offset + (screenSize - gameOverTextWidth) / 2;
-            int gameOverTextY = offset + screenSize / 2 -50;
+                int gameOverTextX = offset + (screenSize - gameOverTextWidth) / 2;
+                int gameOverTextY = offset + screenSize / 2 - 50;
 
-            int restartTextX = offset + (screenSize - restartTextWidth) / 2;
-            int restartTextY = offset + screenSize / 2 ;
+                int restartTextX = offset + (screenSize - restartTextWidth) / 2;
+                int restartTextY = offset + screenSize / 2;
 
-            DrawText("Game Over", gameOverTextX, gameOverTextY, 40, darkGreen);
-            DrawText("Press Enter to Restart", restartTextX, restartTextY, 20, darkGreen);          
+                DrawText("Game Over", gameOverTextX, gameOverTextY, 40, darkGreen);
+                DrawText("Press Enter to Restart", restartTextX, restartTextY, 20, darkGreen);
+            }
         }
 
         //Drawing Background
@@ -308,9 +318,9 @@ int main()
         int scoreTextWidth = MeasureText("Score: ", 40);
         DrawText(TextFormat("%i", game.score), offset + scoreTextWidth, offset + screenSize + 10, 40, darkGreen);
 
-        DrawText("Best Score: ", 2*(scoreTextWidth + offset - 5), offset + screenSize + 10, 40, darkGreen);
+        DrawText("Best Score: ", 2 * (scoreTextWidth + offset - 5), offset + screenSize + 10, 40, darkGreen);
         int bestScoreTextWidth = MeasureText("Best Score: ", 40);
-        DrawText(TextFormat("%i", bestScore), 2*(offset + bestScoreTextWidth + 10), offset + screenSize + 10, 40, darkGreen);
+        DrawText(TextFormat("%i", bestScore), 2 * (offset + bestScoreTextWidth + 10), offset + screenSize + 10, 40, darkGreen);
 
         game.Draw();
         EndDrawing();
